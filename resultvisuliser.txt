@@ -1,0 +1,8 @@
+ L1-ant(1,2) L4-ant(1,4) L7-ant(1,0)
+ L1-ant(2,1) L2-ant(1,2) L4-ant(2,4) L6-ant(1,4) L7-ant(2,0)
+ L1-ant(4,1) L2-ant(2,1) L3-ant(1,2) L4-ant(6,4) L6-ant(2,4) L9-ant(1,4) L7-ant(3,0)
+ L1-ant(10,1) L2-ant(4,1) L3-ant(2,1) L5-ant(1,2) L4-ant(7,3) L6-ant(6,4) L9-ant(2,4) L7-ant(4,0)
+ L2-ant(10,1) L3-ant(4,1) L5-ant(2,1) L8-ant(1,2) L4-ant(8,3) L6-ant(7,3) L9-ant(6,4) L7-ant(5,0)
+ L3-ant(10,1) L5-ant(4,1) L8-ant(2,1) L4-ant(10,1) L6-ant(8,3) L9-ant(7,3) L7-ant(6,0)
+ L5-ant(10,1) L8-ant(4,1) L6-ant(10,1) L9-ant(8,3) L7-ant(10,1)
+ L8-ant(10,1) L9-ant(10,1)

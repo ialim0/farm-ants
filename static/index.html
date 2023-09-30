@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ants on a Graph</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 50px;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: scroll;
+            height: 100vh;
+        }
+
+        #ant-graph {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #ccc;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .button-container button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #start-button {
+            background-color: #007bff;
+            color: #fff;
+            display: none;
+        }
+
+        #refresh-button {
+            background-color: #28a745;
+            color: #fff;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .ant-label {
+            font-size: 12px;
+            fill: #333;
+            text-anchor: middle;
+        }
+
+        #ant-count {
+            font-size: 18px;
+            fill: #333;
+            text-anchor: middle;
+        }
+
+        #status {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Ants on a Graph</h1>
+    <svg id="ant-graph">
+        <g id="ants-group"></g>
+        <text id="ant-count" x="50%" y="20"></text>
+        <text id="status" x="50%" y="40"></text>
+    </svg>
+    <div class="button-container">
+        <button id="start-button">Start Animation</button>
+        <button id="refresh-button" onclick="refreshPage()">Refresh</button>
+    </div>
+    <script>
+        const svg = d3.select("#ant-graph");
+        const antsGroup = svg.select("#ants-group");
+        const antCountText = svg.select("#ant-count");
+        const statusText = svg.select("#status");
+        const startButton = document.getElementById("start-button");
+        const refreshButton = document.getElementById("refresh-button");
+        let currentStep = 0; // Current step initialized to 0
+        let maxSteps = 0; // Maximum number of steps
+        let antsData = []; // Array to store ants data
+
+        // Function to generate random colors
+        function getRandomColor() {
+            const letters = "0123456789ABCDEF";
+            let color = "#";
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        // Function to fetch ants data from the server
+        async function fetchAntsData() {
+            try {
+                const response = await fetch('/ants'); // Assuming the server is running on the same domain
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                antsData = await response.json();
+                if (antsData.length > 0) {
+                    maxSteps = Math.max(...antsData.map(ant => ant.movements[ant.movements.length - 1].step)); // Calculate the maximum number of steps
+                }
+                return antsData;
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                return [];
+            }
+        }
+
+        // Function to start the animation with fetched data
+        async function startAnimationWithFetchedData() {
+            antsData = await fetchAntsData();
+            if (antsData.length > 0) {
+                startButton.disabled = true;
+                // Calculate the number of unique ant names
+                const uniqueAntNames = new Set(antsData.map(ant => ant.name));
+                antCountText.text(`Total Ants: ${uniqueAntNames.size}`);
+
+                animateAnts();
+            }
+
+        }
+
+        // Function to update the SVG with ant movements
+        function animateAnts() {
+            if (currentStep <= maxSteps) {
+                const scale = d3.scaleLinear()
+                    .domain([0, 10]) // Adjust the domain as per your data
+                    .range([0, 100]);
+
+                antsData.forEach(ant => {
+                    if (ant.movements.some(m => m.step === currentStep)) {
+                        const movement = ant.movements.find(m => m.step === currentStep);
+                        const antCircle = antsGroup.select(`#${ant.name}`);
+                        if (antCircle.empty()) {
+                            antsGroup.append("circle")
+                                .attr("id", ant.name)
+                                .attr("class", "ant")
+                                .attr("r", 5)
+                                .attr("fill", getRandomColor());
+                        }
+                        antsGroup.select(`#${ant.name}`)
+                            .transition()
+                            .duration(2000)
+                            .attr("cx", scale(movement.x))
+                            .attr("cy", scale(movement.y))
+                            .on("end", () => {
+                                if (currentStep === maxSteps) {
+                                    statusText.text("Animation completed");
+                                    startButton.disabled = false;
+                                }
+                            });
+                    }
+                });
+
+                statusText.text(`Step: ${currentStep}/${maxSteps}`); // Display the current step
+                currentStep++;
+                setTimeout(animateAnts, 2000); // Move to the next step
+            } else {
+                // Animation completed
+                statusText.text("Animation completed");
+            }
+        }
+
+        // Function to refresh the page
+        function refreshPage() {
+            location.reload();
+        }
+
+        // Add event listeners to the Start and Refresh buttons
+        startButton.addEventListener("click", () => {
+            currentStep = 0; // Reset the current step
+            startButton.disabled = true;
+            statusText.text("Animation in progress...");
+            animateAnts();
+        });
+
+        refreshButton.addEventListener("click", refreshPage);
+
+        // Initial ant positions (you can customize this)
+        startAnimationWithFetchedData();
+    </script>
+</body>
+
+</html>
