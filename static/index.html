@@ -24,6 +24,8 @@
             width: 100%;
             height: 100%;
             border: 1px solid #ccc;
+            margin: 20px;
+            padding-top: 30px;
         }
 
         .button-container {
@@ -56,8 +58,9 @@
         }
 
         .ant-label {
-            font-size: 12px;
+            font-size: 7px;
             fill: #333;
+            font-weight: 900;
             text-anchor: middle;
         }
 
@@ -150,33 +153,49 @@
                     if (ant.movements.some(m => m.step === currentStep)) {
                         const movement = ant.movements.find(m => m.step === currentStep);
                         const antCircle = antsGroup.select(`#${ant.name}`);
+                        const antLabel = antsGroup.select(`#${ant.name}-label`);
+
                         if (antCircle.empty()) {
+                            // Create a circle for the ant
                             antsGroup.append("circle")
                                 .attr("id", ant.name)
                                 .attr("class", "ant")
                                 .attr("r", 5)
                                 .attr("fill", getRandomColor());
                         }
+
+                        if (antLabel.empty()) {
+                            // Create a text label for the ant's name
+                            antsGroup.append("text")
+                                .attr("id", `${ant.name}-label`)
+                                .attr("class", "ant-label")
+                                .attr("x", scale(movement.x) * 4 + 200)
+                                .attr("y", scale(movement.y) * 4 + 200) // Adjust the y position for the label
+                                .text(ant.name);
+                        }
+
                         antsGroup.select(`#${ant.name}`)
                             .transition()
                             .duration(2000)
-                            .attr("cx", scale(movement.x))
-                            .attr("cy", scale(movement.y))
-                            .on("end", () => {
-                                if (currentStep === maxSteps) {
-                                    statusText.text("Animation completed");
-                                    startButton.disabled = false;
-                                }
-                            });
+                            .attr("cx", scale(movement.x) * 4 + 200)
+                            .attr("cy", scale(movement.y) * 4 + 200);
+
+                        // Update the position of the ant's name label
+                        antsGroup.select(`#${ant.name}-label`)
+                            .transition()
+                            .duration(2000)
+                            .attr("x", scale(movement.x) * 4 + 200)
+                            .attr("y", scale(movement.y) * 4 + 200); // Adjust the y position for the label
                     }
                 });
+
 
                 statusText.text(`Step: ${currentStep}/${maxSteps}`); // Display the current step
                 currentStep++;
                 setTimeout(animateAnts, 2000); // Move to the next step
             } else {
                 // Animation completed
-                statusText.text("Animation completed");
+                statusText.text("Ants completed");
             }
         }
 
@@ -189,11 +208,13 @@
         startButton.addEventListener("click", () => {
             currentStep = 0; // Reset the current step
             startButton.disabled = true;
-            statusText.text("Animation in progress...");
+            statusText.text("Ants move in progress...");
             animateAnts();
         });
 
+
         refreshButton.addEventListener("click", refreshPage);
+
 
         // Initial ant positions (you can customize this)
         startAnimationWithFetchedData();
